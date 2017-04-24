@@ -28,48 +28,11 @@ public class EchoServer {
 			System.out.println( "[server] binding "  + localhostAddress + ":" +  SERVER_PORT );
 			
 			//3. accept(연결 요청을 기다림)
-			Socket socket = serverSocket.accept();   // blocking
-			
-			//4 연결 성공
-			InetSocketAddress remoteAddress = (InetSocketAddress)socket.getRemoteSocketAddress();
-			int remoteHostPort = remoteAddress.getPort();
-			String remoteHostAddress = remoteAddress.getAddress().getHostAddress();
-			System.out.println( "[server] connected from " + remoteHostAddress + ":" + remoteHostPort );
-			
-			try {
-				//5. IOStream 받아오기
-				BufferedReader br = new BufferedReader( new InputStreamReader( socket.getInputStream(), "utf-8" ) );
-				PrintWriter pw = new PrintWriter( new OutputStreamWriter( socket.getOutputStream(), "utf-8" ), true );
-				
-				while( true ) {
-					String message = br.readLine(); //blocking
-					if( message == null ) {
-						//클라이언트가 소켓을 닫음
-						System.out.println( "[server] disconnected by client" );
-						break;
-					}
-					
-					System.out.println( "[server] received : " + message );
-					
-					//데이터 쓰기
-					//pw.print( message + "\n" );
-					pw.println( message );
-					
-				}
-			} catch( SocketException e ) {
-				// 클라이언트가 소켓을 정상적으로 닫지 않고 종료한 경우
-				System.out.println( "[server] closed by client" );
-			} catch( IOException e ) {
-				e.printStackTrace();
-			} finally {
-				try {
-					if( socket != null && socket.isClosed() == false ) {
-						socket.close();
-					}
-				} catch( IOException e ) {
-					e.printStackTrace();
-				}
+			while( true ) {
+				Socket socket = serverSocket.accept();   // blocking
+				new EchoServerReceiveThread( socket ).start();
 			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
